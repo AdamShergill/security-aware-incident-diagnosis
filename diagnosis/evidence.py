@@ -1,0 +1,115 @@
+"""Normalize observed incident artifacts into typed evidence."""
+
+import json
+import re
+from pathlib import Path
+
+from diagnosis.models import Evidence
+
+
+def load_evidence(incident_dir: str | Path) -> list[Evidence]:
+    """Read available artifacts without assuming missing values are zero."""
+    root = Path(incident_dir)
+    if not root.is_dir():
+        raise FileNotFoundError(root)
+
+    records: list[Evidence] = []
+
+    def add(category: str, signal: str, value: object, source: Path):
+        records.append(
+            Evidence(
+                evidence_id=f"E{len(records) + 1:03d}",
+                category=category,
+                signal=signal,
+                value=value,
+                source=str(source),
+            )
+        )
+
+    status_file = root / "upstream-request-status.txt"
+    if status_file.exists():
+        add(
+            "application",
+            "upstream_http_status",
+            int(status_file.read_text().strip()),
+            status_file,
+        )
+
+    request_file = root / "upstream-request.json"
+    if request_file.exists():
+        request = json.loads(request_file.read_text())
+        request_id = request.get("request_id")
+        if request_id is not None:
+            records.append(
+                Evidence(
+                    evidence_id=f"E{len(records) + 1:03d}",
+                    category="application",
+                    signal="request_id",
+                    value=request_id,
+                    source=str(request_file),
+                    request_id=request_id,
+                )
+            )
+
+    backend_file = root / "backend-health.json"
+    if backend_file.exists():
+        health = json.loads(backend_file.read_text())
+        add(
+            "service_health",
+            "backend_healthy",
+            health.get("status") == "healthy",
+            backend_file,
+        )
+
+    probe_file = root / "backend-health-status.txt"
+    if probe_file.exists():
+        status = probe_file.read_text().strip()
+        add(
+            "service_health",
+            "backend_probe_http_status",
+            status,
+            probe_file,
+        )
+
+    container_file = root / "containers-during-fault.txt"
+    if container_file.exists():
+        for line in container_file.read_text().splitlines():
+            if "incident-prototype-backend-1" in line:
+                state = (
+                    "exited" if re.search(r"\bExited\b", line)
+                    else "running" if re.search(r"\bUp\b", line)
+                    else "unknown"
+                )
+                add("container", "backend_container_state", state, container_file)
+                break
+
+    def dropped_packets(path: Path) -> int | None:
+        if not path.exists():
+            return None
+
+        for line in path.read_text().splitlines():
+            if (
+                "DROP" in line
+                and "tcp dpt:8080" in line
+                and "incident-prototype-security-001" in line
+            ):
+                columns = line.split()
+                return int(columns[1])
+
+        return None
+
+    before_file = root / "iptables-before-request.txt"
+    after_file = root / "iptables-after-request.txt"
+
+    before = dropped_packets(before_file)
+    after = dropped_packets(after_file)
+
+    if before is not None and after is not None:
+        add(
+            "network",
+            "firewall_drop_delta",
+            after - before,
+            after_file,
+        )
+
+    return records
