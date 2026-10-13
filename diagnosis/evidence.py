@@ -1,9 +1,9 @@
 """Normalize observed incident artifacts into typed evidence."""
 
 import json
-import re
 from pathlib import Path
 
+from diagnosis.containers import container_state
 from diagnosis.firewall import firewall_drop_delta
 from diagnosis.models import Evidence
 
@@ -73,16 +73,9 @@ def load_evidence(incident_dir: str | Path) -> list[Evidence]:
         )
 
     container_file = root / "containers-during-fault.txt"
-    if container_file.exists():
-        for line in container_file.read_text().splitlines():
-            if "incident-prototype-backend-1" in line:
-                state = (
-                    "exited" if re.search(r"\bExited\b", line)
-                    else "running" if re.search(r"\bUp\b", line)
-                    else "unknown"
-                )
-                add("container", "backend_container_state", state, container_file)
-                break
+    state = container_state(container_file)
+    if state is not None:
+        add("container", "backend_container_state", state, container_file)
 
     before_file = root / "iptables-before-request.txt"
     after_file = root / "iptables-after-request.txt"
