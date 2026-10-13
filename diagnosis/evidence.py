@@ -4,6 +4,7 @@ import json
 import re
 from pathlib import Path
 
+from diagnosis.firewall import firewall_drop_delta
 from diagnosis.models import Evidence
 
 
@@ -83,33 +84,11 @@ def load_evidence(incident_dir: str | Path) -> list[Evidence]:
                 add("container", "backend_container_state", state, container_file)
                 break
 
-    def dropped_packets(path: Path) -> int | None:
-        if not path.exists():
-            return None
-
-        for line in path.read_text().splitlines():
-            if (
-                "DROP" in line
-                and "tcp dpt:8080" in line
-                and "incident-prototype-security-001" in line
-            ):
-                columns = line.split()
-                return int(columns[1])
-
-        return None
-
     before_file = root / "iptables-before-request.txt"
     after_file = root / "iptables-after-request.txt"
+    delta = firewall_drop_delta(before_file, after_file)
 
-    before = dropped_packets(before_file)
-    after = dropped_packets(after_file)
-
-    if before is not None and after is not None:
-        add(
-            "network",
-            "firewall_drop_delta",
-            after - before,
-            after_file,
-        )
+    if delta is not None:
+        add("network", "firewall_drop_delta", delta, after_file)
 
     return records
