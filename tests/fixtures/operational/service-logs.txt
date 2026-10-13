@@ -1,0 +1,2 @@
+2026-10-12T20:49:13.142846780Z {"timestamp": "2026-10-12T20:49:13.142220+00:00", "service": "upstream", "event": "dependency_request_started", "request_id": "ff8a4c72-5710-4734-9d43-0a017727baba", "dependency": "backend"}
+2026-10-12T20:49:13.168296453Z {"timestamp": "2026-10-12T20:49:13.167505+00:00", "service": "upstream", "event": "dependency_request_failed", "request_id": "ff8a4c72-5710-4734-9d43-0a017727baba", "dependency": "backend", "error_type": "URLError", "error": "<urlopen error [Errno -3] Temporary failure in name resolution>"}

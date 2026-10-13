@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class EvidenceReaderTests(unittest.TestCase):
     def test_operational_incident(self):
-        evidence = load_evidence(ROOT / "results/operational-001")
+        evidence = load_evidence(ROOT / "tests/fixtures/operational")
         signals = {e.signal: e.value for e in evidence}
 
         self.assertEqual(signals["upstream_http_status"], 502)
@@ -16,7 +16,7 @@ class EvidenceReaderTests(unittest.TestCase):
         self.assertNotIn("firewall_drop_delta", signals)
 
     def test_security_incident(self):
-        evidence = load_evidence(ROOT / "results/security-001")
+        evidence = load_evidence(ROOT / "tests/fixtures/security")
         signals = {e.signal: e.value for e in evidence}
 
         self.assertEqual(signals["upstream_http_status"], 502)

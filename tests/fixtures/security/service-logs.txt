@@ -1,0 +1,2 @@
+2026-10-12T21:07:45.936798814Z {"timestamp": "2026-10-12T21:07:45.935967+00:00", "service": "upstream", "event": "dependency_request_started", "request_id": "9663c445-37c9-4a33-b75d-e1efabd22ea5", "dependency": "backend"}
+2026-10-12T21:07:47.941767980Z {"timestamp": "2026-10-12T21:07:47.940855+00:00", "service": "upstream", "event": "dependency_request_failed", "request_id": "9663c445-37c9-4a33-b75d-e1efabd22ea5", "dependency": "backend", "error_type": "URLError", "error": "<urlopen error timed out>"}
