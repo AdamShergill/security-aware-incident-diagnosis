@@ -1,0 +1,95 @@
+{
+  "incident_id": "operational",
+  "hypotheses": [
+    {
+      "cause": "backend_unavailable",
+      "score": 90,
+      "supporting_evidence": [
+        "E004",
+        "E003"
+      ],
+      "contradicting_evidence": []
+    },
+    {
+      "cause": "network_policy_denial",
+      "score": 0,
+      "supporting_evidence": [],
+      "contradicting_evidence": [
+        "E004"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "E001",
+      "category": "application",
+      "signal": "upstream_http_status",
+      "value": 502,
+      "source": "tests/fixtures/operational/upstream-request-status.txt",
+      "request_id": null,
+      "timestamp": null
+    },
+    {
+      "evidence_id": "E002",
+      "category": "application",
+      "signal": "request_id",
+      "value": "ff8a4c72-5710-4734-9d43-0a017727baba",
+      "source": "tests/fixtures/operational/upstream-request.json",
+      "request_id": "ff8a4c72-5710-4734-9d43-0a017727baba",
+      "timestamp": null
+    },
+    {
+      "evidence_id": "E003",
+      "category": "service_health",
+      "signal": "backend_probe_http_status",
+      "value": "000",
+      "source": "tests/fixtures/operational/backend-health-status.txt",
+      "request_id": null,
+      "timestamp": null
+    },
+    {
+      "evidence_id": "E004",
+      "category": "container",
+      "signal": "backend_container_state",
+      "value": "exited",
+      "source": "tests/fixtures/operational/containers-during-fault.txt",
+      "request_id": null,
+      "timestamp": null
+    },
+    {
+      "evidence_id": "L001",
+      "category": "application_log",
+      "signal": "dependency_request_started",
+      "value": {
+        "timestamp": "2026-10-12T20:49:13.142220+00:00",
+        "service": "upstream",
+        "event": "dependency_request_started",
+        "request_id": "ff8a4c72-5710-4734-9d43-0a017727baba",
+        "dependency": "backend"
+      },
+      "source": "tests/fixtures/operational/service-logs.txt:1",
+      "request_id": "ff8a4c72-5710-4734-9d43-0a017727baba",
+      "timestamp": "2026-10-12T20:49:13.142220+00:00"
+    },
+    {
+      "evidence_id": "L002",
+      "category": "application_log",
+      "signal": "dependency_request_failed",
+      "value": {
+        "timestamp": "2026-10-12T20:49:13.167505+00:00",
+        "service": "upstream",
+        "event": "dependency_request_failed",
+        "request_id": "ff8a4c72-5710-4734-9d43-0a017727baba",
+        "dependency": "backend",
+        "error_type": "URLError",
+        "error": "<urlopen error [Errno -3] Temporary failure in name resolution>"
+      },
+      "source": "tests/fixtures/operational/service-logs.txt:2",
+      "request_id": "ff8a4c72-5710-4734-9d43-0a017727baba",
+      "timestamp": "2026-10-12T20:49:13.167505+00:00"
+    }
+  ],
+  "limitations": [
+    "Firewall enforcement evidence was not collected."
+  ]
+}
